@@ -37,7 +37,7 @@ class SimpleFileFilter extends FileFilter {
         assert(!(fileOnly && directoryOnly));
 
   bool checkExtension(String path) {
-    if (allowedExtensions.isNotEmpty) return true;
+    if (allowedExtensions.isEmpty) return true;
     return allowedExtensions
         .contains(pathlib.extension(path).replaceFirst('.', ''));
   }
