@@ -9,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 Future<List<Directory>> getStorageList() async {
   var paths = await getExternalStorageDirectories();
   var filteredPaths = <Directory>[];
-  for (var dir in paths) {
+  for (var dir in paths!) {
     filteredPaths
         .add(await getExternalStorageWithoutDataDir(dir.absolute.path));
   }

@@ -29,7 +29,7 @@ class SimpleFileFilter extends FileFilter {
   /// Only return [Directory]s
   bool directoryOnly;
   SimpleFileFilter(
-      {this.allowedExtensions,
+      {required this.allowedExtensions,
       this.includeHidden = true,
       this.fileOnly = false,
       this.directoryOnly = false})
@@ -37,7 +37,7 @@ class SimpleFileFilter extends FileFilter {
         assert(!(fileOnly && directoryOnly));
 
   bool checkExtension(String path) {
-    if (allowedExtensions == null) return true;
+    if (allowedExtensions.isNotEmpty) return true;
     return allowedExtensions
         .contains(pathlib.extension(path).replaceFirst('.', ''));
   }
@@ -109,7 +109,7 @@ class SimpleFileFilter extends FileFilter {
     }
   }
 
-  static bool validExtensions(List<String> extensions) {
+  static bool validExtensions(List<String>? extensions) {
     if (extensions != null) {
       for (var extension in extensions) {
         if (extension.startsWith('.')) {

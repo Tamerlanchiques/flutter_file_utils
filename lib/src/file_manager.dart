@@ -2,7 +2,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
 import 'exceptions.dart';
@@ -25,19 +24,19 @@ class FileManager {
   // The start point .
   Directory root;
 
-  FileFilter filter;
+  FileFilter? filter;
 
-  FileManager({@required this.root, this.filter}) : assert(root != null);
+  FileManager({required this.root, required this.filter});
 
   /// * This function returns a [List] of [int howMany] of type [File] of recently created files.
   /// * [excludeHidded] if [true] hidden files will not be returned
   /// * sortedBy: [Sorting]
   /// * [bool] reversed: in case parameter sortedBy is used
   Future<List<FileSystemEntity>> recentFilesAndDirs(int count,
-      {List<String> extensions,
-      List<String> excludedPaths,
+      {List<String>? extensions,
+      List<String>? excludedPaths,
       bool excludeHidden = false,
-      FlutterFileUtilsSorting sortedBy,
+      FlutterFileUtilsSorting? sortedBy,
       bool reversed = false}) async {
     var filesPaths = await filesTree(
         excludedPaths: excludedPaths,
@@ -68,10 +67,10 @@ class FileManager {
   /// * sortedBy: [FlutterFileUtilsSorting]
   /// * [bool] reversed: in case parameter sortedBy is used
   Future<List<FileSystemEntity>> dirsTree(
-      {List<String> excludedPaths,
+      {List<String>? excludedPaths,
       bool followLinks = false,
       bool excludeHidden = false,
-      FlutterFileUtilsSorting sortedBy}) async {
+      FlutterFileUtilsSorting? sortedBy}) async {
     var dirs = <Directory>[];
 
     try {
@@ -110,8 +109,8 @@ class FileManager {
     } catch (error) {
       throw FileManagerError(permissionMessage + error.toString());
     }
-    if (dirs != null) {
-      return sortBy(dirs, sortedBy);
+    if (dirs.isNotEmpty) {
+      return sortBy(dirs, sortedBy!);
     }
 
     return dirs;
@@ -123,11 +122,11 @@ class FileManager {
   /// * sortedBy: [Sorting]
   /// * [bool] reversed: in case parameter sortedBy is used
   Future<List<FileSystemEntity>> filesTree(
-      {List<String> extensions,
-      List<String> excludedPaths,
+      {List<String>? extensions,
+      List<String>? excludedPaths,
       bool excludeHidden = false,
       bool reversed = false,
-      FlutterFileUtilsSorting sortedBy}) async {
+      FlutterFileUtilsSorting? sortedBy}) async {
     var files = <FileSystemEntity>[];
 
     var dirs = await dirsTree(
@@ -183,7 +182,7 @@ class FileManager {
             .list(recursive: true, followLinks: followLinks)
             .transform(StreamTransformer.fromHandlers(
                 handleData: (FileSystemEntity fileOrDir, EventSink eventSink) {
-          if (filter.isValid(fileOrDir.absolute.path, root.absolute.path)) {
+          if (filter!.isValid(fileOrDir.absolute.path, root.absolute.path)) {
             eventSink.add(fileOrDir);
           }
         }));
@@ -207,19 +206,19 @@ class FileManager {
   /// * Example:
   /// * List<String> imagesPaths = await FileManager.search('myFile.png');
   Future<List<FileSystemEntity>> searchFuture(
-    String keyword, {
-    List<String> excludedPaths,
+    String? keyword, {
+    List<String>? excludedPaths,
     bool filesOnly = false,
     bool dirsOnly = false,
-    List<String> extensions,
+    List<String>? extensions,
     bool reversed = false,
-    FlutterFileUtilsSorting sortedBy,
+    FlutterFileUtilsSorting? sortedBy,
   }) async {
     print('Searching for: $keyword');
     // files that will be returned
     var founds = <FileSystemEntity>[];
 
-    if (keyword.isEmpty || keyword == null) {
+    if (keyword?.isEmpty ?? true) {
       throw Exception('search keyword == null');
     }
 
@@ -231,12 +230,12 @@ class FileManager {
       filesOnly = true;
       dirsOnly = true;
     }
-    if (extensions.isNotEmpty) dirsOnly = false;
+    if (extensions?.isNotEmpty ?? false) dirsOnly = false;
     // in the future fileAndDirTree will be used
     // searching in files
     if (dirsOnly == true) {
       for (var dir in dirs) {
-        if (dir.absolute.path.contains(keyword)) {
+        if (dir.absolute.path.contains(keyword!)) {
           founds.add(dir);
         }
       }
@@ -245,7 +244,7 @@ class FileManager {
 
     if (filesOnly == true) {
       for (var file in files) {
-        if (file.absolute.path.contains(keyword)) {
+        if (file.absolute.path.contains(keyword!)) {
           founds.add(file);
         }
       }
@@ -268,33 +267,33 @@ class FileManager {
   /// * Example:
   /// * `List<String> imagesPaths = await FileManager.search('myFile.png').toList();`
   Stream<FileSystemEntity> search(
-    String keyword, {
-    FileFilter searchFilter,
-    FlutterFileUtilsSorting sortedBy,
+    String? keyword, {
+    FileFilter? searchFilter,
+    FlutterFileUtilsSorting? sortedBy,
   }) async* {
     try {
-      if (keyword.isEmpty || keyword == null) {
+      if (keyword?.isEmpty ?? true) {
         throw FileManagerError('search keyword == null');
       }
       if (searchFilter != null) {
         print('Using default filter');
         yield* root.list(recursive: true, followLinks: true).where((test) {
           if (searchFilter.isValid(test.absolute.path, root.absolute.path)) {
-            return getBaseName(test.path, extension: true).contains(keyword);
+            return getBaseName(test.path, extension: true).contains(keyword!);
           }
           return false;
         });
       } else if (filter != null) {
         print('Using default filter');
         yield* root.list(recursive: true, followLinks: true).where((test) {
-          if (filter.isValid(test.absolute.path, root.absolute.path)) {
-            return getBaseName(test.path, extension: true).contains(keyword);
+          if (filter!.isValid(test.absolute.path, root.absolute.path)) {
+            return getBaseName(test.path, extension: true).contains(keyword!);
           }
           return false;
         });
       } else {
         yield* root.list(recursive: true, followLinks: true).where((test) =>
-            getBaseName(test.path, extension: true).contains(keyword));
+            getBaseName(test.path, extension: true).contains(keyword!));
       }
     } on FileSystemException catch (e) {
       throw FileManagerError(permissionMessage + ' ' + e.toString());
